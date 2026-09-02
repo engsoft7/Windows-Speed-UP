@@ -8,7 +8,6 @@ Como a ferramenta foi evoluindo durante o desenvolvimento, vários arquivos comp
 
 - **`UltraIA_GodMode.exe`**: 👑 **(Recomendado)** A versão final e suprema da IA já compilada e pronta para uso. Contém o Timer Hack de latência (1ms), Core Isolation dinâmico e proteção de tela cheia (Beast Mode). É esse arquivo que você deve usar.
 - **`UltraIA.cs`**: O código-fonte principal escrito em C#. Contém toda a lógica estrutural e o mapeamento das APIs nativas do Windows (`kernel32.dll`, `user32.dll`, `winmm.dll`). Útil se você for desenvolvedor, quiser revisar o código ou recompilar o sistema por conta própria.
-- **`UltraIA.exe` / `UltraOptimizer.exe`**: Versões anteriores/estáveis (V2.0) do executável. Elas funcionam perfeitamente para controle de CPU, mas não possuem o "Timer Hack extremo" do God Mode embutido.
 - **`icone.ico`**: O ícone exclusivo (Neon) desenhado para injetar na interface do executável.
 - **`adicionar_icone.ps1`**: Script em PowerShell utilizado para desenhar dinamicamente o ícone vetorial e para forçar o compilador nativo do Windows (`csc.exe`) a acoplar esse ícone ao código fonte.
 
