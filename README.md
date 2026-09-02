@@ -1,45 +1,43 @@
-# Windows Speed-UP (Ultra IA Optimizer) 🚀⚡
+# Windows Speed-UP (UltraOptimizer) 🚀
 
-Uma ferramenta de otimização nativa em C# para Windows focada em extrair o máximo de performance absoluta do seu hardware, especialmente desenhada para diminuir o *Input Lag* e aumentar o FPS em jogos eliminando gargalos de CPU e Disco.
+[![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-blue.svg)]()
+[![Language: C#](https://img.shields.io/badge/Language-C%23-239120.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]()
 
-## 🧠 Como a Mágica Funciona? (Explicação Simples para Leigos)
+**Windows Speed-UP** é um *daemon* nativo de otimização de sistema escrito em C# e focado em extrair o máximo de performance de processadores em ambientes Windows. Desenvolvido para mitigar problemas de latência (*Input Lag*) e *stuttering* (quedas bruscas de quadros) durante cargas de trabalho pesadas e sessões de jogos.
 
-Se você não entende muito de computadores, imagine o seguinte:
-O Windows é como um **cruzamento de trânsito muito movimentado**. Quando você está jogando e, de repente, o antivírus ou o navegador resolvem fazer alguma coisa no fundo, o Windows tenta dar atenção para todo mundo ao mesmo tempo. É nesse momento que o seu jogo "engasga" ou perde desempenho (cai o FPS).
+## ⚙️ Arquitetura e Funcionamento
 
-O que o **UltraIA** faz é agir como um **Policial de Trânsito** extremamente rigoroso direto no motor do computador:
-- **O poder segue seus olhos:** No momento em que você clica em uma janela ou jogo, a IA dá uma carteirada no Windows: *"Parem tudo! Prioridade máxima para esse programa agora!"*
-- **A Prisão (Isolamento de Núcleos):** Se você abrir o jogo em Tela Cheia, a IA pega todos os outros aplicativos (Spotify, abas do Chrome, etc.) e "tranca" eles em apenas **um cantinho do processador** (o Núcleo 0). Assim, todo o restante do seu processador fica 100% limpo e focado só no seu jogo.
+Diferente de otimizadores genéricos que prometem resultados através da simples limpeza de arquivos temporários, o **UltraOptimizer** atua diretamente no *Scheduler* (Escalonador) do Windows, interagindo através de P/Invoke com as bibliotecas nativas `kernel32.dll`, `user32.dll` e `winmm.dll`.
 
-**Isso demora para fazer efeito?**
-Não! O efeito é **imediato**. Diferente de algoritmos lentos que "aprendem", esta IA aplica regras militares na exata fração de segundo em que você maximiza um jogo.
+Para atestar sua credibilidade e eficiência, o sistema foi projetado para consumir **~0% de CPU**. Ele opera através de chamadas em *Thread.Sleep* (polling a cada 1500ms), garantindo que a própria ferramenta seja assíncrona e não gere nenhum *overhead* (peso) no sistema.
 
-**Por que a IA consome 0% de CPU se ela é tão forte?**
-Porque ela age como um atirador de elite. O código foi programado para acordar, fazer as otimizações no processador inteiro em apenas **1 milissegundo**, e depois **dormir profundamente por 1.5 segundos**. Como ela passa 99,9% da vida dela dormindo, ela pesa zero no seu computador.
+### Principais Funcionalidades Técnicas
 
----
+1. **Timer Resolution Tuning (1ms)**  
+   O sistema operacional Windows utiliza uma resolução de interrupção (Timer Resolution) padrão de 15.6ms. A ferramenta utiliza a API Multimídia do Kernel (`timeBeginPeriod`) para forçar o sistema a trabalhar com uma resolução de **1 milissegundo**. Isso resulta em uma diminuição substancial do tempo de resposta da CPU a periféricos (mouses e teclados de alta precisão).
 
-## 📂 Estrutura de Arquivos do Projeto
+2. **Foreground Priority Injection (Dynamic QoS)**  
+   Através da API `GetForegroundWindow`, o daemon rastreia a aplicação atualmente em foco pelo usuário. Ele injeta dinamicamente a classe de prioridade `High` no processo ativo, garantindo que o Escalonador do Windows priorize o tempo de CPU para a aplicação principal acima de processos de background.
 
-Como a ferramenta foi evoluindo, vários arquivos compõem o repositório atual:
+3. **Core Isolation & Beast Mode (Heurística de Tela Cheia)**  
+   Quando uma aplicação (como um jogo ou software de renderização 3D) entra em estado de *Fullscreen*, o protocolo de contenção é ativado:
+   - **Restrição de Afinidade (Affinity Masking):** Processos não-críticos em segundo plano têm sua execução restrita obrigatoriamente à **CPU 0**. Isso evita a saturação do cache L3 do processador e libera 100% dos demais núcleos físicos exclusivamente para a aplicação em foco.
+   - **I/O Suppression:** A prioridade de memória e paginação desses processos secundários é rebaixada para `Idle`, mitigando interrupções bruscas de leitura no disco (SSD/HDD) que comumente causam o micro-stuttering.
 
-- **`UltraIA_GodMode.exe`**: 👑 **(Recomendado)** A versão final e suprema da IA já compilada e pronta para uso. Contém o Timer Hack de latência (1ms), Core Isolation dinâmico e proteção de tela cheia (Beast Mode). É esse arquivo que você deve usar.
-- **`UltraIA.cs`**: O código-fonte principal escrito em C#. Contém toda a lógica estrutural e o mapeamento das APIs nativas do Windows (`kernel32.dll`, `user32.dll`, `winmm.dll`). Útil se você for desenvolvedor, quiser revisar o código ou recompilar o sistema por conta própria.
-- **`icone.ico`**: O ícone exclusivo (Neon) desenhado para injetar na interface do executável.
-- **`adicionar_icone.ps1`**: Script em PowerShell utilizado para desenhar dinamicamente o ícone vetorial e para forçar o compilador nativo do Windows (`csc.exe`) a acoplar esse ícone ao código fonte.
+4. **Auto-Recovery Inteligente**  
+   Ao fechar ou minimizar a aplicação principal, a máscara de afinidade e as prioridades dos processos secundários são imediatamente restauradas para os padrões originais do Windows, preservando a estabilidade a longo prazo do sistema.
 
-## 🔥 Funcionalidades Avançadas (God Mode)
+## 📂 Estrutura do Repositório
 
-- **Zero Latency (Timer Hack):** Altera o Relógio de Interrupção do Windows via Multimídia Kernel (`timeBeginPeriod`) para **1 milissegundo**, reduzindo a latência de periféricos ao mínimo possível pela placa-mãe.
-- **Foreground Priority Boost:** Rastreia qual janela o usuário está olhando e injeta dinamicamente `Prioridade Alta` direto no processo ativo.
-- **Beast Mode (Detecção de Tela Cheia):** Ao detectar que um jogo ou programa ocupou a tela inteira, a IA entra em protocolo restrito:
-  1. **Core Isolation:** Força todos os aplicativos paralelos e processos não-vitais a rodarem enjaulados **apenas na CPU 0**, liberando os demais núcleos 100% para a Tela Cheia.
-  2. **I/O Suppression:** Rebaixa processos de segundo plano para prioridade `Idle`, bloqueando que eles acessem o SSD intensamente e causem *stuttering* no meio de uma partida.
-- **Auto-Recovery Inteligente:** Ao minimizar ou fechar o jogo, destranca os núcleos e restaura os discos e as prioridades automaticamente.
+- **`UltraIA_GodMode.exe`**: 👑 **(Release Principal)** A versão final compilada (`winexe`). Contém o Tuning de Latência, Isolamento Dinâmico de Núcleos e Foreground Tracking. Pronto para uso.
+- **`UltraIA.cs`**: O código-fonte principal (C#). Contém todo o mapeamento e lógica de chamadas nativas do Windows.
+- **`icone.ico` & `adicionar_icone.ps1`**: Assets visuais e o script de compilação automatizada utilizando o compilador `csc.exe` nativo do .NET Framework.
 
-## 🛠️ Como usar (Instalação Fácil)
+## 🛠️ Instalação (Standalone)
 
-O sistema roda nativamente em modo *Windowless* (nenhuma interface ou terminal vai poluir sua tela).
+A aplicação é distribuída como um executável *Standalone Windowless* (não requer instalação de dependências externas, Frameworks pesados ou interfaces visuais em background).
 
-Para instalar, basta apertar as teclas `Win + R` no seu teclado, digitar `shell:startup` e colar o executável **`UltraIA_GodMode.exe`** lá dentro. 
-Pronto! Ele rodará automaticamente e silenciosamente toda vez que você ligar o computador.
+1. Pressione `Win + R` e digite `shell:startup`.
+2. Cole o arquivo **`UltraIA_GodMode.exe`** dentro da pasta.
+3. A otimização será executada de forma invisível em segundo plano (em nível de sistema) toda vez que o Sistema Operacional for iniciado.
